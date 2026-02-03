@@ -109,29 +109,28 @@
 // #define TMP_BAT_VAL_FIX 55 // 额外固定增益
 
 /*
-    充电时的电池电压ad值和未充电时电池电压ad值，他们之前的ad值差值
+	充电时的电池电压ad值和未充电时电池电压ad值，他们之前的ad值差值
 
-	检测电池电压 1M上拉、470K下拉 
-    检测电池电压的分压系数 == 470K / (470K + 1M)
-    约为 0.31972789115646258503401360544218
+	检测电池电压 1M上拉、470K下拉
+	检测电池电压的分压系数 == 470K / (470K + 1M)
+	约为 0.31972789115646258503401360544218
 
-    如果用内部 3 V参考电压，12位精度（0-4096），
-    那么 1单位ad值 相当于电池电池电压：
-    0.00229076628989361702127659574468  V 
+	如果用内部 3 V参考电压，12位精度（0-4096），
+	那么 1单位ad值 相当于电池电池电压：
+	0.00229076628989361702127659574468  V
 */
 // #define ADC_BAT_DIFF_VAL (55) // 测得充电时 xxA
 // #define ADC_BAT_DIFF_VAL (65) //
 // #define ADC_BAT_DIFF_VAL (75) //
 
-#define ADC_BAT_DIFF_VAL (100) // 
-// #define ADC_BAT_DIFF_VAL (105) // 
+#define ADC_BAT_DIFF_VAL (100) //
+// #define ADC_BAT_DIFF_VAL (105) //
 // #define ADC_BAT_DIFF_VAL (110) // 1.0-1.3AX
 
-// #define ADC_BAT_DIFF_VAL (120) // 
-// #define ADC_BAT_DIFF_VAL (130) // 
+// #define ADC_BAT_DIFF_VAL (120) //
+// #define ADC_BAT_DIFF_VAL (130) //
 #define WAIT_CIRCUIT_STABLIZE_TIMES (5) // 等待电路稳定时间,单位:ms
 // #define WAIT_CIRCUIT_STABLIZE_TIMES (10) // 等待电路稳定时间
-
 
 // struct tmp_bat_val_fix
 // {
@@ -171,7 +170,7 @@ enum
 
 enum
 {
-	KEY_EVENT_NONE = 0,	  // 无按键事件
+	KEY_EVENT_NONE = 0, // 无按键事件
 	// KEY_EVENT_HEAT_PRESS, // 加热按键短按
 	KEY_EVENT_MODE_PRESS, // 开关/模式按键短按
 	KEY_EVENT_MODE_HOLD,  // 开关/模式按键长按
@@ -295,10 +294,12 @@ volatile u8 full_charge_cnt;   // 检测到充满电后，进行计数的变量
 #define BREATH_PERIOD 200 // 呼吸周期（ms）
 
 static uint8_t pwm_duty;		 // 当前PWM占空比
-static uint16_t pwm_counter;	 // PWM计数器
+static uint8_t pwm_counter;		 // PWM计数器
 static uint8_t breath_counter;	 // 呼吸效果计数器
 static uint8_t breath_direction; // 呼吸方向：0-渐亮，1-渐暗
 static uint8_t led_state;		 // LED状态
+// 充电累计时间
+volatile u32 charge_time_cnt;
 
 // 中断服务程序使用到的两个变量：
 u8 abuf;
@@ -324,9 +325,9 @@ volatile bit_flag flag1;
 volatile bit_flag flag2;
 volatile bit_flag flag3;
 
-#define FLAG_IS_DEVICE_OPEN flag1.bits.bit0		// 设备是否开机的标志位，0--未开机，1--开机
+#define FLAG_IS_DEVICE_OPEN flag1.bits.bit0 // 设备是否开机的标志位，0--未开机，1--开机
 // #define FLAG_IS_HEATING flag1.bits.bit1			// 加热是否工作的标志位
-#define FLAG_IS_IN_CHARGING flag1.bits.bit2		// 是否处于充电的标志位
+#define FLAG_IS_IN_CHARGING flag1.bits.bit2 // 是否处于充电的标志位
 // #define FLAG_DIR flag1.bits.bit3				// 正转，反转的标志位， 0--正转（默认是0为正转），1--反转
 #define FLAG_BAT_IS_NEED_CHARGE flag1.bits.bit4 // 电池是否需要充电的标志位, 0--不需要充电，1--需要充电
 #define FLAG_BAT_IS_FULL flag1.bits.bit5		// 电池是否满电的标志位，0--未满电，1--满电
@@ -339,8 +340,8 @@ volatile bit_flag flag3;
 
 #define flag_is_low_battery flag2.bits.bit2 // 标志位，是否检测到低电量
 
-// #define flag_ctl_dir flag3.bits.bit0   // 控制标志位，是否要切换方向
-#define flag_ctl_speed flag3.bits.bit1 // 控制标志位，是否要切换电机转速
+#define flag_is_led_breath_disable flag3.bits.bit0 // 是否关闭充电指示灯(呼吸灯)
+#define flag_ctl_speed flag3.bits.bit1			   // 控制标志位，是否要切换电机转速
 
 #define flag_maybe_low_battery flag3.bits.bit2 // 标志位，可能检测到了低电量
 
@@ -349,7 +350,7 @@ volatile bit_flag flag3;
 
 #define flag_is_update_current flag3.bits.bit5 // 是否到了更新充电电流的时间
 
-#define flag_is_adjust_pwm_time_comes flag3.bits.bit6 // 是否到了调节控制充电的PWM的时间
+#define flag_is_enable_pwm0_in_isr flag3.bits.bit6 // 在中断内使用，用于控制pwm0和pwm1切换
 
 #define flag_bat_is_empty flag3.bits.bit7 // 标志位，用于检测是否拔出了电池
 
